@@ -1,0 +1,2727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>指挥联动执法系统 - 柔性执法</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+                'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 布局容器 */
+        .layout-container {
+            display: flex;
+            flex: 1;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #e8e8e8;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+            overflow-y: auto;
+            height: calc(100vh - 56px);
+            position: sticky;
+            top: 56px;
+        }
+
+        .sidebar-menu {
+            padding: 16px 0;
+        }
+
+        .menu-group {
+            margin-bottom: 8px;
+        }
+
+        .menu-group-title {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+
+        .menu-group-title:hover {
+            background: #fafafa;
+        }
+
+        .menu-group-title .arrow {
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .menu-group-title.expanded .arrow {
+            transform: rotate(90deg);
+        }
+
+        .menu-items {
+            display: none;
+        }
+
+        .menu-items.expanded {
+            display: block;
+        }
+
+        .menu-item {
+            padding: 10px 24px 10px 48px;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-item:hover {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .menu-item.active {
+            background: #e6f7ff;
+            color: #1890ff;
+            font-weight: 500;
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #1890ff;
+        }
+
+        /* 待审核数量徽章 */
+        .badge {
+            display: inline-block;
+            min-width: 18px;
+            height: 18px;
+            line-height: 18px;
+            padding: 0 6px;
+            background: #ff4d4f;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            border-radius: 9px;
+            margin-left: auto;
+        }
+
+        /* 主内容区 */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: #1890ff;
+            color: #fff;
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .system-name {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+        }
+
+        .active-tab {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 面包屑导航 */
+        .breadcrumb {
+            background: #fff;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+
+        .breadcrumb-item {
+            display: inline-block;
+        }
+
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            margin: 0 8px;
+            color: #d9d9d9;
+        }
+
+        .breadcrumb-item.active {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .menu-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* 筛选区域 */
+        .filter-section {
+            background: #fff;
+            padding: 20px 24px;
+            margin: 16px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-row.hidden {
+            display: none;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-item label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .filter-item input,
+        .filter-item select {
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 160px;
+            transition: all 0.3s;
+        }
+
+        .filter-item input:focus,
+        .filter-item select:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        .filter-item input::placeholder {
+            color: #bfbfbf;
+        }
+
+        .filter-item select {
+            cursor: pointer;
+        }
+
+        .date-range {
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .date-range input {
+            min-width: 180px;
+        }
+
+        .date-range span {
+            color: #999;
+            font-size: 14px;
+            padding-bottom: 6px;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .btn-more,
+        .btn-export,
+        .btn-query {
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            color: #666;
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-query {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: #fff;
+        }
+
+        .btn-query:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        .btn-reset {
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            color: #666;
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-reset:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+
+        .btn-add {
+            background: #52c41a;
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-add:hover {
+            background: #73d13d;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-more:hover,
+        .btn-export:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .search-btn-wrapper {
+            margin-left: auto;
+        }
+
+        .btn-search {
+            background: #1890ff;
+            border: none;
+            color: #fff;
+            padding: 6px 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-search:hover {
+            background: #40a9ff;
+        }
+
+        /* 统计数据 */
+        .stats-section {
+            display: flex;
+            gap: 48px;
+            padding: 16px 24px;
+            margin: 0 16px 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1890ff;
+        }
+
+        /* 表格区域 */
+        .table-section {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table thead {
+            background: #fafafa;
+        }
+
+        .data-table th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 1px solid #e8e8e8;
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .data-table td {
+            padding: 10px;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: 1px solid #1890ff;
+            color: #1890ff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-icon:hover {
+            background: #1890ff;
+            color: #fff;
+        }
+
+        .btn-audit {
+            background: transparent;
+            border: 1px solid #52c41a;
+            color: #52c41a;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-audit:hover {
+            background: #52c41a;
+            color: #fff;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: 1px solid #ff4d4f;
+            color: #ff4d4f;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-delete:hover {
+            background: #ff4d4f;
+            color: #fff;
+        }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .pagination select,
+        .pagination input {
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            color: #333;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .pagination input {
+            width: 50px;
+            text-align: center;
+        }
+
+        .pagination span {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 状态标签 */
+        .status-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-tag.pending {
+            background: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        .status-tag.approved {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        /* 操作按钮组 */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid;
+        }
+
+        .btn-view {
+            background: #fff;
+            border-color: #d9d9d9;
+            color: #666;
+        }
+
+        .btn-view:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .btn-audit {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: #fff;
+        }
+
+        .btn-audit:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        /* 审核弹窗样式 */
+        .audit-info {
+            background: #f5f7fa;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-row label {
+            color: #666;
+            min-width: 100px;
+            font-weight: 500;
+        }
+
+        .info-row span {
+            color: #333;
+            flex: 1;
+        }
+
+        .audit-options {
+            margin-bottom: 20px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 24px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .radio-item input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .audit-remark {
+            margin-bottom: 20px;
+        }
+
+        .audit-remark label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .audit-remark textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .audit-remark textarea:focus {
+            outline: none;
+            border-color: #1890ff;
+        }
+
+        .audit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .btn-cancel,
+        .btn-confirm {
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid;
+        }
+
+        .btn-cancel {
+            background: #fff;
+            border-color: #d9d9d9;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .btn-confirm {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: #fff;
+        }
+
+        .btn-confirm:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        /* 审核结果卡片 */
+        .audit-options {
+            padding: 20px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .audit-section .radio-group {
+            display: flex;
+            gap: 32px;
+            margin-top: 12px;
+        }
+
+        .audit-section .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .audit-section .radio-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .audit-options .audit-remark {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            border: none;
+        }
+
+        .audit-options .audit-remark label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .audit-options .audit-remark textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 13px;
+            resize: vertical;
+            font-family: inherit;
+            background: #fff;
+        }
+
+        .audit-section .audit-remark textarea:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        .audit-options .audit-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            border: none;
+            margin-top: auto;
+        }
+
+        .audit-options .btn-cancel,
+        .audit-options .btn-confirm {
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .audit-section .btn-cancel {
+            background: #fff;
+            border-color: #d9d9d9;
+            color: #666;
+        }
+
+        .audit-section .btn-cancel:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .audit-section .btn-confirm {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: #fff;
+        }
+
+        .audit-section .btn-confirm:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        /* 时间轴样式 */
+        .timeline-section {
+            padding: 20px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: #e8e8e8;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #1890ff;
+            z-index: 1;
+        }
+
+        .timeline-item.active::before {
+            background: #1890ff;
+            box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.2);
+        }
+
+        .timeline-item.success::before {
+            border-color: #52c41a;
+        }
+
+        .timeline-item.success.active::before {
+            background: #52c41a;
+            box-shadow: 0 0 0 4px rgba(82, 196, 26, 0.2);
+        }
+
+        .timeline-item.warning::before {
+            border-color: #faad14;
+        }
+
+        .timeline-item.warning.active::before {
+            background: #faad14;
+            box-shadow: 0 0 0 4px rgba(250, 173, 20, 0.2);
+        }
+
+        .timeline-item.danger::before {
+            border-color: #ff4d4f;
+        }
+
+        .timeline-item.danger.active::before {
+            background: #ff4d4f;
+            box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.2);
+        }
+
+        .timeline-time {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        .timeline-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .timeline-content .operator {
+            font-weight: 500;
+            color: #1890ff;
+        }
+
+        .timeline-content .action {
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .timeline-content .action.pass {
+            color: #52c41a;
+        }
+
+        .timeline-content .action.reject {
+            color: #ff4d4f;
+        }
+
+        .timeline-content .action.abandon {
+            color: #faad14;
+        }
+
+        .timeline-content .remark {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            color: #666;
+            font-style: normal;
+        }
+
+        .timeline-content .remark-label {
+            color: #1890ff;
+            font-weight: 500;
+        }
+
+        /* 电子资料导出弹窗样式 */
+        .export-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 24px;
+        }
+
+        .export-form-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .export-form-item label {
+            min-width: 120px;
+            text-align: right;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .export-form-item label.required::before {
+            content: '* ';
+            color: #ff4d4f;
+        }
+
+        .export-form-item input,
+        .export-form-item select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #fff;
+            transition: all 0.3s;
+        }
+
+        .export-form-item input:focus,
+        .export-form-item select:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        .export-form-item input[readonly] {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .export-form-item select {
+            cursor: pointer;
+        }
+
+        /* 导出操作按钮区域 */
+        .export-actions {
+            margin-top: 24px;
+            padding: 20px 24px 0;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        #viewActions,
+        #editActions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.45);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 4px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-large {
+            max-width: 1200px;
+            width: 95%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .modal-header span {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: #999;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        .btn-close:hover {
+            color: #ff4d4f;
+            background: #fff1f0;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-item label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* 审核弹窗中的标签样式 - 横向布局 */
+        #auditDetailContent .detail-item {
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        #auditDetailContent .detail-item label {
+            width: 120px;
+            min-width: 120px;
+            max-width: 120px;
+            text-align: right;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        #auditDetailContent .detail-item input,
+        #auditDetailContent .detail-item textarea {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .detail-item input,
+        .detail-item textarea,
+        .detail-item select {
+            background: #f5f5f5;
+            border: 1px solid #d9d9d9;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .detail-item input:focus,
+        .detail-item textarea:focus,
+        .detail-item select:focus {
+            outline: none;
+            border-color: #1890ff;
+            background: #fff;
+        }
+
+        .detail-item input:disabled,
+        .detail-item textarea:disabled,
+        .detail-item select:disabled {
+            background: #f9f9f9;
+            cursor: not-allowed;
+        }
+
+        .detail-item textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .status-badge.pending {
+            background: #faad14;
+            color: #fff;
+        }
+
+        .status-badge.approved {
+            background: #52c41a;
+            color: #fff;
+        }
+
+        .photo-preview {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .photo-placeholder {
+            width: 100px;
+            height: 75px;
+            background: #f5f5f5;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #bfbfbf;
+        }
+
+        .approval-flow {
+            margin-top: 24px;
+            padding: 16px;
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+        }
+
+        .approval-flow label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        /* 详情弹窗中的时间轴样式 */
+        #flowContent.timeline {
+            padding-left: 24px;
+        }
+
+        #flowContent .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        #flowContent .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #1890ff;
+            z-index: 1;
+        }
+
+        #flowContent .timeline-item.active::before {
+            background: #1890ff;
+            box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.2);
+        }
+
+        #flowContent .timeline-item.success::before {
+            border-color: #52c41a;
+        }
+
+        #flowContent .timeline-item.success.active::before {
+            background: #52c41a;
+            box-shadow: 0 0 0 4px rgba(82, 196, 26, 0.2);
+        }
+
+        #flowContent .timeline-item.danger::before {
+            border-color: #ff4d4f;
+        }
+
+        #flowContent .timeline-item.danger.active::before {
+            background: #ff4d4f;
+            box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.2);
+        }
+
+        .flow-content {
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 时间轴内容样式 */
+        .timeline-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .timeline-content .operator {
+            font-weight: 500;
+            color: #1890ff;
+        }
+
+        .timeline-content .action {
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .timeline-content .action.pass {
+            color: #52c41a;
+        }
+
+        .timeline-content .action.reject {
+            color: #ff4d4f;
+        }
+
+        .timeline-content .action.abandon {
+            color: #faad14;
+        }
+
+        .timeline-content .remark {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            color: #666;
+            font-style: normal;
+        }
+
+        .timeline-content .remark-label {
+            color: #1890ff;
+            font-weight: 500;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d9d9d9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bfbfbf;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-icon">📊</div>
+                <span class="system-name">指挥联动执法系统</span>
+            </div>
+            <div class="header-center">
+                <div class="active-tab">柔性执法</div>
+            </div>
+            <div class="header-right">
+                <span class="user-info">A sn009(大厅审核员)</span>
+            </div>
+        </div>
+
+        <!-- 筛选区域 -->
+        <div class="layout-container">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="sidebar-menu">
+                    <!-- 案件列表 -->
+                    <div class="menu-group">
+                        <div class="menu-group-title expanded" onclick="toggleMenu(this)">
+                            <span><span class="menu-icon">📋</span>案件列表</span>
+                            <span class="arrow">▶</span>
+                        </div>
+                        <div class="menu-items expanded">
+                            <div class="menu-item active" onclick="selectMenu(this)">
+                                <span class="menu-icon">⏳</span>待审核
+                                <span class="badge">6</span>
+                            </div>
+                            <div class="menu-item" onclick="selectMenu(this)">
+                                <span class="menu-icon">✅</span>已审核
+                            </div>
+                            <div class="menu-item" onclick="selectMenu(this)">
+                                <span class="menu-icon">📄</span>全部案件
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 设置 -->
+                    <div class="menu-group">
+                        <div class="menu-group-title expanded" onclick="toggleMenu(this)">
+                            <span><span class="menu-icon">️</span>设置</span>
+                            <span class="arrow">▶</span>
+                        </div>
+                        <div class="menu-items expanded">
+                            <div class="menu-item" onclick="selectMenu(this)">
+                                <span class="menu-icon">📝</span>白名单设置
+                            </div>
+                            <div class="menu-item" onclick="selectMenu(this)">
+                                <span class="menu-icon">⏰</span>处置时限设置
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧内容 -->
+            <div class="main-wrapper">
+                <!-- 面包屑导航 -->
+                <div class="breadcrumb">
+                    <span class="breadcrumb-item">案件列表</span>
+                    <span class="breadcrumb-item active">待审核</span>
+                </div>
+
+<!-- 主内容区 -->
+                <div class="main-content">
+                    <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-item">
+                    <input type="text" placeholder="请选择区域" />
+                </div>
+                <div class="filter-item">
+                    <input type="text" placeholder="浙D" />
+                </div>
+                <div class="filter-item">
+                    <input type="text" placeholder="车牌号" />
+                </div>
+                <div class="filter-item date-range">
+                    <input type="text" placeholder="2026-05-29 00:00:00" />
+                    <span>至</span>
+                    <input type="text" placeholder="2026-05-29 12:00:00" />
+                </div>
+                <div class="filter-item">
+                    <input type="text" placeholder="编号" />
+                </div>
+                <div class="filter-actions">
+                    <button class="btn-query" onclick="queryData()">查询</button>
+                    <button class="btn-more" id="btnMore" onclick="toggleFilter()">
+                        <span class="menu-icon">⬇️</span><span id="btnMoreText">展开</span>
+                    </button>
+                    <button class="btn-export" onclick="openExportModal()">导出 ▾</button>
+                </div>
+            </div>
+
+            <div class="filter-row hidden" id="filterRow2">
+                <div class="filter-item">
+                    <select>
+                        <option>处理状态</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <select>
+                        <option>是否有效</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <select>
+                        <option>是否首次违停</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <input type="text" placeholder="柔性执法编号" />
+                </div>
+                <div class="filter-item">
+                    <select>
+                        <option>罚单已打印</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <select>
+                        <option>处罚类型</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <select>
+                        <option>车辆类型</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-row hidden" id="filterRow3">
+                <div class="filter-item">
+                    <select>
+                        <option>柔性执法状态</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <input type="text" placeholder="执法人员编号" />
+                </div>
+                <div class="filter-item">
+                    <select>
+                        <option>有无车主信息</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计数据 -->
+        <div class="stats-section">
+            <div class="stat-item">
+                <span class="stat-label">柔性执法数量</span>
+                <span class="stat-value">326,185</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">处罚数量</span>
+                <span class="stat-value">132,422</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">驶离率</span>
+                <span class="stat-value">71.12%</span>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="table-section">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>违停时间</th>
+                        <th>编号</th>
+                        <th>所属区域</th>
+                        <th>车牌号</th>
+                        <th>车辆类型</th>
+                        <th>处理人</th>
+                        <th>地点</th>
+                        <th>处理状态</th>
+                        <th>处理类型</th>
+                        <th>柔性执法状态</th>
+                        <th>是否有效</th>
+                        <th>纸单是否打印</th>
+                        <th>有无车主信息</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                <select>
+                    <option>20 条/页</option>
+                </select>
+                <span>跳至</span>
+                <input type="text" value="1" />
+                <span>页</span>
+            </div>
+        </div>
+    </div>
+
+
+<!-- 白名单设置页面（默认隐藏） -->
+        <div class="main-content" id="whitelistPage" style="display: none;">
+            <!-- 筛选条件 -->
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <label>车牌号：</label>
+                        <input type="text" placeholder="请输入车牌号" id="whitelistPlateFilter" />
+                    </div>
+                    <div class="filter-item">
+                        <label>号牌种类：</label>
+                        <select id="whitelistTypeFilter">
+                            <option value="">全部</option>
+                            <option value="小型汽车">小型汽车</option>
+                            <option value="小型新能源汽车">小型新能源汽车</option>
+                            <option value="大型汽车">大型汽车</option>
+                            <option value="摩托车">摩托车</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>状态：</label>
+                        <select id="whitelistStatusFilter">
+                            <option value="">全部</option>
+                            <option value="有效">有效</option>
+                            <option value="已过期">已过期</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn-add" onclick="openWhitelistModal()">+ 新增白名单</button>
+                        <button class="btn-query" onclick="searchWhitelist()">查询</button>
+                        <button class="btn-reset" onclick="resetWhitelistFilter()">重置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 白名单表格 -->
+            <div class="table-section">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>车牌号码</th>
+                            <th>号牌种类</th>
+                            <th>车辆所属单位/个人</th>
+                            <th>有效期限</th>
+                            <th>备案原因</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="whitelistTableBody">
+                        <!-- JS动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                <select>
+                    <option>20 条/页</option>
+                </select>
+                <span>跳至</span>
+                <input type="text" value="1" />
+                <span>页</span>
+            </div>
+        </div>
+
+        <!-- 处置时限设置页面（默认隐藏） -->
+        <div class="main-content" id="timeLimitPage" style="display: none;">
+            <!-- 设置表单 -->
+            <div class="filter-section" style="margin: 16px; padding: 32px; background: #fff; border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <label style="font-size: 14px; color: #333; white-space: nowrap;">自动流转时间：</label>
+                    <input type="number" id="autoFlowTime" value="4" placeholder="请输入整数" min="1" step="1" style="width: 200px; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; background: #f5f5f5;" oninput="validateInteger(this)" />
+                    <span style="font-size: 14px; color: #666; white-space: nowrap;">小时</span>
+                    <div style="display: flex; gap: 12px; margin-left: auto;">
+                        <button class="btn-confirm" onclick="saveTimeLimitSettings()">保存</button>
+                        <button class="btn-reset" onclick="resetTimeLimitSettings()">重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+       <!-- 详情弹窗 -->
+        <div class="modal-overlay" id="detailModal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <span>详情</span>
+                    <button class="btn-close" onclick="closeModal()">✕</button>
+                </div>
+                <div class="modal-body" style="overflow-x: hidden;">
+                    <!-- 左右布局 -->
+                    <div style="display: flex; gap: 24px; width: 100%; min-height: 500px;">
+                        <!-- 左侧：详情信息（占60%） -->
+                        <div style="flex: 0 0 60%; min-width: 0; overflow: hidden;">
+                            <div class="detail-grid" id="detailContent" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <!-- 右侧：审核流程（占40%） -->
+                        <div style="flex: 0 0 40%; min-width: 0; display: flex; flex-direction: column; padding-right: 20px;">
+                            <div class="timeline-section" style="max-height: 500px; overflow-y: auto;">
+                                <label style="display: block; margin-bottom: 16px; font-weight: 600; font-size: 15px;">审核流程：</label>
+                                <div class="timeline" id="flowContent">
+                                    <!-- JS动态填充 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 审核弹窗 -->
+        <div class="modal-overlay" id="auditModal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <span>审核</span>
+                    <button class="btn-close" onclick="closeAuditModal()"></button>
+                </div>
+                <div class="modal-body" style="overflow-x: hidden;">
+                    <!-- 左右布局 -->
+                    <div style="display: flex; gap: 24px; width: 100%;">
+                        <!-- 左侧：详情信息（占60%） -->
+                        <div style="flex: 0 0 60%; min-width: 0; overflow: hidden;">
+                            <div class="detail-grid" id="auditDetailContent" style="width: 100%;">
+                                <!-- JS动态填充 -->
+                            </div>
+                        </div>
+
+                        <!-- 右侧：审核结果和审核流程（占40%） -->
+                        <div style="flex: 0 0 40%; min-width: 0; display: flex; flex-direction: column; gap: 20px; padding-right: 20px;">
+                            <!-- 审核结果卡片 -->
+                            <div class="audit-options">
+                                <label style="display: block; margin-bottom: 12px; font-weight: 500;">审核结果：</label>
+                                <div class="radio-group">
+                                    <label class="radio-item">
+                                        <input type="radio" name="auditResult" value="pass" checked />
+                                        <span>审核通过</span>
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" name="auditResult" value="reject" />
+                                        <span>审核不通过</span>
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" name="auditResult" value="abandon" />
+                                        <span>废弃</span>
+                                    </label>
+                                </div>
+
+                                <!-- 审核意见 -->
+                                <div class="audit-remark">
+                                    <label>审核意见：</label>
+                                    <textarea id="auditRemark" placeholder="请输入审核意见（选填）" rows="4"></textarea>
+                                </div>
+
+                                <!-- 操作按钮 -->
+                                <div class="audit-actions">
+                                    <button class="btn-cancel" onclick="closeAuditModal()">取消</button>
+                                    <button class="btn-confirm" onclick="submitAudit()">确认</button>
+                                </div>
+                            </div>
+
+                            <!-- 审核流程时间轴 -->
+                            <div class="timeline-section">
+                                <label style="display: block; margin-bottom: 16px; font-weight: 600; font-size: 15px;">审核流程：</label>
+                                <div class="timeline" id="auditTimeline">
+                                    <!-- JS动态填充 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 电子资料导出弹窗 -->
+        <div class="modal-overlay" id="exportModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span>电子资料导出</span>
+                    <button class="btn-close" onclick="closeExportModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <!-- 导出表单 - 单列布局 -->
+                    <div class="export-form">
+                        <div class="export-form-item">
+                            <label class="required">区域：</label>
+                            <input type="text" value="上虞" readonly />
+                        </div>
+                        <div class="export-form-item">
+                            <label>执法人员：</label>
+                            <select>
+                                <option value="">请先选择区域</option>
+                            </select>
+                        </div>
+                        <div class="export-form-item">
+                            <label class="required">开始时间：</label>
+                            <input type="text" value="2026-04-22 00:00:00" />
+                        </div>
+                        <div class="export-form-item">
+                            <label class="required">结束时间：</label>
+                            <input type="text" value="2026-04-23 10:41:57" />
+                        </div>
+                        <div class="export-form-item">
+                            <label>车辆类型：</label>
+                            <select>
+                                <option value="">请选择</option>
+                                <option>小型汽车</option>
+                                <option>小型新能源汽车</option>
+                                <option>大型汽车</option>
+                                <option>摩托车</option>
+                            </select>
+                        </div>
+                        <div class="export-form-item">
+                            <label>年度内违停次数：</label>
+                            <select>
+                                <option value="all">全部</option>
+                                <option value="0">0次</option>
+                                <option value="1">1次</option>
+                                <option value="2">2次</option>
+                                <option value="3">3次及以上</option>
+                            </select>
+                        </div>
+                        <div class="export-form-item">
+                            <label>已导出的记录：</label>
+                            <select>
+                                <option value="no">否</option>
+                                <option value="yes">是</option>
+                            </select>
+                        </div>
+                        <div class="export-form-item">
+                            <label>罚单是否打印：</label>
+                            <select>
+                                <option value="printed">罚单已打印</option>
+                                <option value="not-printed">罚单未打印</option>
+                                <option value="all">全部</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="export-actions">
+                        <button class="btn-cancel" onclick="closeExportModal()">取消</button>
+                        <button class="btn-confirm" onclick="submitExport()">导出</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 白名单查看/编辑弹窗 -->
+        <div class="modal-overlay" id="whitelistModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span id="whitelistModalTitle">新增白名单</span>
+                    <button class="btn-close" onclick="closeWhitelistModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label class="required">车牌号码：</label>
+                            <input type="text" id="wlPlate" placeholder="请输入车牌号码" disabled />
+                        </div>
+                        <div class="detail-item">
+                            <label class="required">号牌种类：</label>
+                            <select id="wlType" disabled>
+                                <option value="">请选择</option>
+                                <option value="小型汽车">小型汽车</option>
+                                <option value="小型新能源汽车">小型新能源汽车</option>
+                                <option value="大型汽车">大型汽车</option>
+                                <option value="摩托车">摩托车</option>
+                            </select>
+                        </div>
+                        <div class="detail-item full-width">
+                            <label class="required">车辆所属单位/个人：</label>
+                            <input type="text" id="wlOwner" placeholder="请输入车辆所属单位或个人" disabled />
+                        </div>
+                        <div class="detail-item">
+                            <label class="required">有效期限（开始）：</label>
+                            <input type="date" id="wlStartDate" disabled />
+                        </div>
+                        <div class="detail-item">
+                            <label class="required">有效期限（结束）：</label>
+                            <input type="date" id="wlEndDate" disabled />
+                        </div>
+                        <div class="detail-item full-width">
+                            <label class="required">备案原因：</label>
+                            <textarea id="wlReason" placeholder="请输入备案原因" rows="4" disabled></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="export-actions" id="whitelistModalActions">
+                        <!-- 查看模式：显示编辑按钮 -->
+                        <div id="viewActions" style="display: none;">
+                            <button class="btn-cancel" onclick="closeWhitelistModal()">关闭</button>
+                            <button class="btn-confirm" onclick="switchToEditMode()">编辑</button>
+                        </div>
+                        <!-- 编辑/新增模式：显示保存和取消按钮 -->
+                        <div id="editActions">
+                            <button class="btn-cancel" onclick="closeWhitelistModal()">取消</button>
+                            <button class="btn-confirm" onclick="saveWhitelist()">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据 - 按状态分类
+        const allMockData = [
+            { id: '90528558', area: '上虞/城南中队/网格7', plate: '浙DJ69E6', type: '小型汽车', handler: '金周', location: '青春路', status: '待审核', punishType: '处罚', time: '2026-05-29 09:58:15', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:58:15', operator: '金周', department: '上虞/城南中队/网格7', action: '上报', type: 'report'}, {time: '2026-05-29 13:58:15', operator: '系统', department: '系统', action: '自动流转', type: 'auto'}, {time: '2026-05-29 14:23:12', operator: '王明强', department: '指挥中心', action: '废弃', type: 'abandon', remark: '图片未按规定拍摄，看不清内容'}] },
+            { id: '90528557', area: '上虞/城南中队/网格7', plate: '浙DE48Z4', type: '小型汽车', handler: '金周', location: '青春路', status: '待审核', punishType: '处罚', time: '2026-05-29 09:57:44', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:57:44', operator: '金周', department: '上虞/城南中队/网格7', action: '上报', type: 'report'}] },
+            { id: '90528553', area: '上虞/城北中队/网格1', plate: '浙B6ZJ33', type: '小型汽车', handler: '李彬彬', location: '观山路', status: '已审核', punishType: '处罚', time: '2026-05-29 09:49:00', isFirst: false, printed: true, hasOwner: false, auditFlow: [{time: '2026-05-29 09:49:00', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}, {time: '2026-05-29 10:30:00', operator: '中队长A', department: '上虞/城北中队/网格1', action: '审核通过', type: 'pass', remark: '证据充分，符合处罚标准'}] },
+            { id: '90528551', area: '上虞/城北中队/网格1', plate: '浙D2V787', type: '小型汽车', handler: '李彬彬', location: '江东路', status: '已审核', punishType: '处罚', time: '2026-05-29 09:40:39', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:40:39', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}, {time: '2026-05-29 11:20:00', operator: '中队长B', department: '上虞/城北中队/网格1', action: '审核通过', type: 'pass'}] },
+            { id: '90528549', area: '上虞/城北中队/网格1', plate: '浙D2L7M9', type: '小型汽车', handler: '李彬彬', location: '江东路', status: '待审核', punishType: '处罚', time: '2026-05-29 09:39:39', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:39:39', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}] },
+            { id: '90528545', area: '上虞/城北中队/网格1', plate: '浙DVG695', type: '小型新能源汽车', handler: '李彬彬', location: '江东路', status: '已审核', punishType: '处罚', time: '2026-05-29 09:37:05', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:37:05', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}, {time: '2026-05-29 14:15:00', operator: '中队长A', department: '上虞/城北中队/网格1', action: '审核通过', type: 'pass', remark: '违停证据确凿'}] },
+            { id: '90528544', area: '上虞/城北中队/网格1', plate: '浙D082W9', type: '小型汽车', handler: '李彬彬', location: '江东路', status: '待审核', punishType: '处罚', time: '2026-05-29 09:35:29', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:35:29', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}] },
+            { id: '90528543', area: '上虞/城北中队/网格1', plate: '浙M1W98M', type: '小型汽车', handler: '李彬彬', location: '江东路', status: '已审核', punishType: '处罚', time: '2026-05-29 09:34:35', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:34:35', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}, {time: '2026-05-29 15:45:00', operator: '中队长C', department: '上虞/城北中队/网格1', action: '审核不通过', type: 'reject', remark: '照片不清晰，无法确认车牌号'}] },
+            { id: '90528542', area: '上虞/城北中队/网格1', plate: '浙D07C5Y7', type: '小型汽车', handler: '李彬彬', location: '江广路', status: '待审核', punishType: '处罚', time: '2026-05-29 09:30:23', isFirst: false, printed: true, hasOwner: false, auditFlow: [{time: '2026-05-29 09:30:23', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}] },
+            { id: '90528540', area: '上虞/城北中队/网格1', plate: '浙D07C5Y7', type: '小型汽车', handler: '李彬彬', location: '江广路', status: '已审核', punishType: '处罚', time: '2026-05-29 09:23:46', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:23:46', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}, {time: '2026-05-29 16:30:00', operator: '中队长B', department: '上虞/城北中队/网格1', action: '审核通过', type: 'pass'}] },
+            { id: '90528539', area: '上虞/城北中队/网格1', plate: '浙DQA482', type: '小型汽车', handler: '李彬彬', location: '江广路', status: '待审核', punishType: '处罚', time: '2026-05-29 09:22:54', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:22:54', operator: '李彬彬', department: '上虞/城北中队/网格1', action: '上报', type: 'report'}] },
+            { id: '90528532', area: '上虞/城中中队/网格3', plate: '浙DW5E3Y3', type: '小型汽车', handler: '高文杰', location: '人民大道', status: '已审核', punishType: '处罚', time: '2026-05-29 09:11:21', isFirst: false, printed: true, hasOwner: true, auditFlow: [{time: '2026-05-29 09:11:21', operator: '高文杰', department: '上虞/城中中队/网格3', action: '上报', type: 'report'}, {time: '2026-05-29 17:00:00', operator: '中队长A', department: '上虞/城中中队/网格3', action: '审核通过', type: 'pass', remark: '情况属实'}] },
+        ];
+
+        // 当前选中的菜单类型
+        let currentMenuType = '待审核';
+
+        // 根据菜单类型获取数据
+        function getDataByMenu() {
+            console.log('=== getDataByMenu ===');
+            console.log('currentMenuType:', currentMenuType);
+            console.log('currentMenuType类型:', typeof currentMenuType);
+            console.log('currentMenuType长度:', currentMenuType.length);
+            console.log('currentMenuType字节:', Array.from(currentMenuType).map(c => c.charCodeAt(0)));
+            
+            if (currentMenuType === '待审核') {
+                const result = allMockData.filter(item => item.status === '待审核');
+                console.log('待审核数据数量:', result.length);
+                return result;
+            } else if (currentMenuType === '已审核') {
+                const result = allMockData.filter(item => item.status === '已审核');
+                console.log('已审核数据数量:', result.length);
+                return result;
+            } else if (currentMenuType === '白名单设置') {
+                console.log('白名单设置，不返回案件数据');
+                return []; // 白名单页面不需要案件数据
+            } else {
+                console.log('全部案件数据数量:', allMockData.length);
+                return allMockData; // 全部案件
+            }
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const data = getDataByMenu();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td>${item.time}</td>
+                    <td>${item.id}</td>
+                    <td>${item.area}</td>
+                    <td>${item.plate}</td>
+                    <td>${item.type}</td>
+                    <td>${item.handler}</td>
+                    <td>${item.location}</td>
+                    <td><span class="status-tag ${item.status === '待审核' ? 'pending' : 'approved'}">${item.status}</span></td>
+                    <td>${item.punishType}</td>
+                    <td>*</td>
+                    <td>*</td>
+                    <td>${item.printed ? '是' : '否'}</td>
+                    <td>${item.hasOwner ? '有' : '无'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" onclick='viewDetail(${JSON.stringify(item)})'>查看</button>
+                            ${item.status === '待审核' ? `<button class="btn-action btn-audit" onclick='openAuditModal(${JSON.stringify(item)})'>审核</button>` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 查看详情 - 第一版的完整字段
+        function viewDetail(item) {
+            const modal = document.getElementById('detailModal');
+            const content = document.getElementById('detailContent');
+                    
+            content.innerHTML = `
+                <div class="detail-item">
+                    <label>车辆类型：</label>
+                    <input type="text" value="${item.type}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>违停地点：</label>
+                    <input type="text" value="${item.location}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>车牌号：</label>
+                    <input type="text" value="${item.plate}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>违停时间：</label>
+                    <input type="text" value="${item.time}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>是否年度内首次违停：</label>
+                    <input type="text" value="${item.isFirst ? '否' : '否'}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>是否导出：</label>
+                    <input type="text" value="未导出" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>纸单是否打印：</label>
+                    <input type="text" value="${item.printed ? '是' : '否'}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理人：</label>
+                    <input type="text" value="${item.handler}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理人部门：</label>
+                    <input type="text" value="${item.area}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理状态：</label>
+                    <input type="text" value="${item.status}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理类型：</label>
+                    <input type="text" value="${item.punishType}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>编号：</label>
+                    <input type="text" value="${item.id}" readonly />
+                </div>
+                <div class="detail-item full-width">
+                    <label>短信内容：</label>
+                    <textarea readonly></textarea>
+                </div>
+                <div class="detail-item full-width">
+                    <label>描述：</label>
+                    <input type="text" value="中国浙江省绍兴市上虞区${item.location}中段" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>违停照片：</label>
+                    <div class="photo-preview">
+                        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop" alt="违停照片1" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
+                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop" alt="违停照片2" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
+                    </div>
+                </div>
+
+            `;
+                    
+            modal.classList.add('active');
+                    
+            // 显示审核流程时间轴
+            const flowContent = document.getElementById('flowContent');
+            if (item.auditFlow && item.auditFlow.length > 0) {
+                flowContent.innerHTML = item.auditFlow.map((flow, index) => {
+                    const isLast = index === item.auditFlow.length - 1;
+                    const typeClass = flow.type === 'pass' ? 'success' : flow.type === 'reject' ? 'danger' : flow.type === 'abandon' ? 'warning' : '';
+                    const actionClass = flow.type;
+                    const activeClass = isLast ? 'active' : '';
+                            
+                    return `
+                        <div class="timeline-item ${typeClass} ${activeClass}">
+                            <div class="timeline-time">${flow.time}</div>
+                            <div class="timeline-content">
+                                <div style="margin-bottom: 4px;"><span style="color: #666;">处理人：</span><span style="color: #333; font-weight: 500;">${flow.operator}</span></div>
+                                <div style="margin-bottom: 4px;"><span style="color: #666;">处理人部门：</span><span style="color: #333;">${flow.department || '-'}</span></div>
+                                <div style="margin-bottom: 4px;"><span style="color: #666;">审核结果：</span><span class="action ${actionClass}" style="font-weight: 600;">${flow.action}</span></div>
+                                ${flow.remark ? `<div><span style="color: #666;">审核意见：</span><span style="color: #333;">${flow.remark}</span></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                flowContent.innerHTML = '<div style="color: #999; font-size: 14px;">暂无审核流程</div>';
+            }
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        // 点击遮罩关闭
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // 当前审核的数据项
+        let currentAuditItem = null;
+
+        // 打开审核弹窗
+        function openAuditModal(item) {
+            currentAuditItem = item;
+            
+            // 填充详情信息 - 与截图一致的双列布局
+            const detailContent = document.getElementById('auditDetailContent');
+            detailContent.innerHTML = `
+                <div class="detail-item">
+                    <label>车辆类型：</label>
+                    <input type="text" value="${item.type}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>违停地点：</label>
+                    <input type="text" value="${item.location}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>车牌号：</label>
+                    <input type="text" value="${item.plate}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>违停时间：</label>
+                    <input type="text" value="${item.time}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>是否年度内首次违停：</label>
+                    <input type="text" value="${item.isFirst ? '否' : '否'}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>是否导出：</label>
+                    <input type="text" value="未导出" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>纸单是否打印：</label>
+                    <input type="text" value="${item.printed ? '是' : '否'}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理人：</label>
+                    <input type="text" value="${item.handler}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理人部门：</label>
+                    <input type="text" value="${item.area}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理状态：</label>
+                    <input type="text" value="${item.status}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>处理类型：</label>
+                    <input type="text" value="${item.punishType}" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>编号：</label>
+                    <input type="text" value="${item.id}" readonly />
+                </div>
+                <div class="detail-item full-width">
+                    <label>短信内容：</label>
+                    <textarea readonly></textarea>
+                </div>
+                <div class="detail-item full-width">
+                    <label>描述：</label>
+                    <input type="text" value="中国浙江省绍兴市上虞区${item.location}中段" readonly />
+                </div>
+                <div class="detail-item">
+                    <label>违停照片：</label>
+                    <div class="photo-preview">
+                        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop" alt="违停照片1" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
+                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop" alt="违停照片2" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
+                    </div>
+                </div>
+
+            `;
+            
+            // 显示审核流程时间轴
+            const timeline = document.getElementById('auditTimeline');
+            if (item.auditFlow && item.auditFlow.length > 0) {
+                timeline.innerHTML = item.auditFlow.map((flow, index) => {
+                    const isLast = index === item.auditFlow.length - 1;
+                    const typeClass = flow.type === 'pass' ? 'success' : flow.type === 'reject' ? 'danger' : flow.type === 'abandon' ? 'warning' : '';
+                    const actionClass = flow.type;
+                    const activeClass = isLast ? 'active' : '';
+                    
+                    return `
+                        <div class="timeline-item ${typeClass} ${activeClass}">
+                            <div class="timeline-time">${flow.time}</div>
+                            <div class="timeline-content">
+                                <div style="margin-bottom: 4px;"><span style="color: #666;">处理人：</span><span style="color: #333; font-weight: 500;">${flow.operator}</span></div>
+                                <div style="margin-bottom: 4px;"><span style="color: #666;">处理人部门：</span><span style="color: #333;">${flow.department || '-'}</span></div>
+                                <div style="margin-bottom: 4px;"><span style="color: #666;">审核结果：</span><span class="action ${actionClass}" style="font-weight: 600;">${flow.action}</span></div>
+                                ${flow.remark ? `<div><span style="color: #666;">审核意见：</span><span style="color: #333;">${flow.remark}</span></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                timeline.innerHTML = '<div style="color: #999; font-size: 14px;">暂无审核流程</div>';
+            }
+            
+            // 重置表单
+            document.querySelector('input[name="auditResult"][value="pass"]').checked = true;
+            document.getElementById('auditRemark').value = '';
+            
+            // 显示弹窗
+            document.getElementById('auditModal').classList.add('active');
+        }
+
+        // 关闭审核弹窗
+        function closeAuditModal() {
+            document.getElementById('auditModal').classList.remove('active');
+            currentAuditItem = null;
+        }
+
+        // 点击审核弹窗遮罩关闭
+        document.getElementById('auditModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAuditModal();
+            }
+        });
+
+        // 打开导出弹窗
+        function openExportModal() {
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        // 关闭导出弹窗
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        // 提交导出
+        function submitExport() {
+            // 获取表单数据
+            const formData = {
+                area: document.querySelector('.export-form-item:nth-child(1) input').value,
+                officer: document.querySelector('.export-form-item:nth-child(2) select').value,
+                startTime: document.querySelector('.export-form-item:nth-child(3) input').value,
+                endTime: document.querySelector('.export-form-item:nth-child(4) input').value,
+                vehicleType: document.querySelector('.export-form-item:nth-child(5) select').value,
+                violationCount: document.querySelector('.export-form-item:nth-child(6) select').value,
+                exported: document.querySelector('.export-form-item:nth-child(7) select').value,
+                printed: document.querySelector('.export-form-item:nth-child(8) select').value
+            };
+
+            // 验证必填字段
+            if (!formData.area) {
+                alert('请选择区域！');
+                return;
+            }
+            if (!formData.startTime) {
+                alert('请输入开始时间！');
+                return;
+            }
+            if (!formData.endTime) {
+                alert('请输入结束时间！');
+                return;
+            }
+
+            // 这里可以添加实际的导出逻辑
+            console.log('导出数据:', formData);
+            alert('正在导出数据...');
+            
+            // 关闭弹窗
+            closeExportModal();
+        }
+
+        // 点击导出弹窗遮罩关闭
+        document.getElementById('exportModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExportModal();
+            }
+        });
+
+        // 提交审核
+        function submitAudit() {
+            if (!currentAuditItem) return;
+            
+            const auditResult = document.querySelector('input[name="auditResult"]:checked').value;
+            const remark = document.getElementById('auditRemark').value;
+            
+            // 获取审核结果文本
+            const resultText = {
+                'pass': '审核通过',
+                'reject': '审核不通过',
+                'abandon': '废弃'
+            }[auditResult];
+            
+            // 生成时间戳
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            
+            // 添加新的审核流程记录
+            const newFlow = {
+                time: timeStr,
+                operator: 'A sn009',
+                action: resultText,
+                type: auditResult,
+                remark: remark || ''
+            };
+            
+            currentAuditItem.auditFlow.push(newFlow);
+            
+            // 更新数据状态
+            currentAuditItem.status = '已审核';
+            
+            // 重新渲染表格
+            renderTable();
+            
+            // 关闭弹窗
+            closeAuditModal();
+            
+            // 提示成功
+            alert(`审核${resultText}成功！`);
+        }
+
+        // 查询功能
+        function queryData() {
+            // 获取筛选条件的值
+            const filters = {
+                plate: document.querySelector('#filterRow1 .filter-item:nth-child(2) input').value,
+                area: document.querySelector('#filterRow1 .filter-item:nth-child(3) select').value,
+                startTime: document.querySelector('#filterRow1 .filter-item:nth-child(4) input').value,
+                endTime: document.querySelector('#filterRow1 .filter-item:nth-child(5) input').value,
+                number: document.querySelector('#filterRow1 .filter-item:nth-child(6) input').value
+            };
+
+            console.log('查询条件:', filters);
+            alert('正在查询数据...');
+            
+            // 这里可以添加实际的查询逻辑
+            // 例如：根据筛选条件过滤mockData并重新渲染表格
+        }
+
+        // 切换筛选条件展开/收起
+        function toggleFilter() {
+            const row2 = document.getElementById('filterRow2');
+            const row3 = document.getElementById('filterRow3');
+            const btnMore = document.getElementById('btnMore');
+            const btnMoreText = document.getElementById('btnMoreText');
+            const btnMoreIcon = btnMore.querySelector('.menu-icon');
+            
+            const isHidden = row2.classList.contains('hidden');
+            
+            if (isHidden) {
+                row2.classList.remove('hidden');
+                row3.classList.remove('hidden');
+                btnMoreText.textContent = '收起';
+                btnMoreIcon.textContent = '⬆️';
+            } else {
+                row2.classList.add('hidden');
+                row3.classList.add('hidden');
+                btnMoreText.textContent = '展开';
+                btnMoreIcon.textContent = '⬇️';
+            }
+        }
+
+        // 切换菜单展开/收起
+        function toggleMenu(element) {
+            const menuGroup = element.parentElement;
+            const menuItems = menuGroup.querySelector('.menu-items');
+            const arrow = element.querySelector('.arrow');
+            
+            element.classList.toggle('expanded');
+            menuItems.classList.toggle('expanded');
+        }
+
+        // 选择菜单项
+        function selectMenu(element) {
+            // 移除所有active状态
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 添加active状态
+            element.classList.add('active');
+            
+            // 获取菜单文本（去除emoji、badge和空格）
+            // 克隆节点并移除badge元素
+            const clone = element.cloneNode(true);
+            const badge = clone.querySelector('.badge');
+            if (badge) {
+                badge.remove();
+            }
+            const fullText = clone.textContent.trim();
+            console.log('原始文本:', fullText, '长度:', fullText.length);
+            
+            // 提取纯文本：只保留中文字符
+            let menuText = fullText.replace(/[^\u4e00-\u9fa5]/g, '');
+            currentMenuType = menuText; // 更新当前菜单类型
+            
+            console.log('当前菜单:', currentMenuType, '长度:', currentMenuType.length);
+            console.log('过滤后的数据数量:', getDataByMenu().length);
+            
+            // 更新面包屑
+            const breadcrumb = document.querySelector('.breadcrumb');
+            
+            if (menuText === '白名单设置') {
+                breadcrumb.innerHTML = `
+                    <span class="breadcrumb-item">设置</span>
+                    <span class="breadcrumb-item active">白名单设置</span>
+                `;
+            } else if (menuText === '处置时限设置') {
+                breadcrumb.innerHTML = `
+                    <span class="breadcrumb-item">设置</span>
+                    <span class="breadcrumb-item active">处置时限设置</span>
+                `;
+            } else {
+                const parentGroup = element.closest('.menu-group');
+                const groupTitle = parentGroup.querySelector('.menu-group-title span').textContent;
+                
+                breadcrumb.innerHTML = `
+                    <span class="breadcrumb-item">${groupTitle}</span>
+                    <span class="breadcrumb-item active">${menuText}</span>
+                `;
+            }
+            
+            // 重新渲染表格
+            renderTable();
+            
+            // 切换页面显示
+            const mainWrapper = document.querySelector('.main-wrapper');
+            
+            if (menuText === '白名单设置') {
+                const whitelistPage = document.getElementById('whitelistPage');
+                const timeLimitPage = document.getElementById('timeLimitPage');
+                const caseListPage = document.querySelector('.main-wrapper > .main-content:not(#whitelistPage):not(#timeLimitPage)');
+                
+                if (caseListPage) {
+                    caseListPage.style.display = 'none';
+                }
+                if (timeLimitPage) {
+                    timeLimitPage.style.display = 'none';
+                }
+                
+                whitelistPage.style.display = 'block';
+                renderWhitelistTable(); // 初始化白名单表格
+            } else if (menuText === '处置时限设置') {
+                const whitelistPage = document.getElementById('whitelistPage');
+                const timeLimitPage = document.getElementById('timeLimitPage');
+                const caseListPage = document.querySelector('.main-wrapper > .main-content:not(#whitelistPage):not(#timeLimitPage)');
+                
+                if (caseListPage) {
+                    caseListPage.style.display = 'none';
+                }
+                if (whitelistPage) {
+                    whitelistPage.style.display = 'none';
+                }
+                
+                timeLimitPage.style.display = 'block';
+            } else {
+                console.log('切换到案件列表页面');
+                const whitelistPage = document.getElementById('whitelistPage');
+                const timeLimitPage = document.getElementById('timeLimitPage');
+                const allMainContents = document.querySelectorAll('.main-content');
+                // 显示第一个main-content（案件列表）
+                if (allMainContents.length > 0) {
+                    allMainContents[0].style.display = 'block';
+                    console.log('显示第1个main-content');
+                }
+                if (whitelistPage) {
+                    whitelistPage.style.display = 'none';
+                }
+                if (timeLimitPage) {
+                    timeLimitPage.style.display = 'none';
+                }
+            }
+        }
+
+        // 初始化
+        renderTable();
+
+        // ==================== 白名单功能 ====================
+        
+        // 白名单模拟数据
+        let whitelistData = [
+            { id: 1, plate: '浙A88888', type: '小型汽车', owner: 'XX市公安局', startDate: '2026-01-01', endDate: '2026-12-31', reason: '公务用车，执行紧急任务', status: '有效', createTime: '2026-01-01 10:00:00' },
+            { id: 2, plate: '浙B66666', type: '小型新能源汽车', owner: '张三', startDate: '2026-03-15', endDate: '2026-09-15', reason: '特殊车辆，已备案', status: '有效', createTime: '2026-03-15 14:30:00' },
+            { id: 3, plate: '浙C12345', type: '大型汽车', owner: 'XX物流公司', startDate: '2025-06-01', endDate: '2025-12-01', reason: '运输专用车辆', status: '已过期', createTime: '2025-06-01 09:00:00' },
+        ];
+        
+        console.log('白名单数据已定义，数量:', whitelistData.length);
+
+        // 当前编辑的白名单ID
+        let currentWhitelistId = null;
+
+        // 渲染白名单表格
+        function renderWhitelistTable(data = whitelistData) {
+            const tbody = document.getElementById('whitelistTableBody');
+            
+            if (!tbody) {
+                console.error('找不到 whitelistTableBody 元素！');
+                return;
+            }
+            
+            const html = data.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.plate}</td>
+                    <td>${item.type}</td>
+                    <td>${item.owner}</td>
+                    <td>${item.startDate} 至 ${item.endDate}</td>
+                    <td>${item.reason}</td>
+                    <td><span class="status-tag ${item.status === '有效' ? 'approved' : 'pending'}">${item.status}</span></td>
+                    <td>${item.createTime}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" onclick="viewWhitelist(${item.id})">查看</button>
+                            <button class="btn-action btn-delete" onclick="deleteWhitelist(${item.id})">删除</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            tbody.innerHTML = html;
+        }
+
+        // 打开新增白名单弹窗
+        function openWhitelistModal() {
+            currentWhitelistId = null;
+            document.getElementById('whitelistModalTitle').textContent = '新增白名单';
+            document.getElementById('wlPlate').value = '';
+            document.getElementById('wlType').value = '';
+            document.getElementById('wlOwner').value = '';
+            document.getElementById('wlStartDate').value = '';
+            document.getElementById('wlEndDate').value = '';
+            document.getElementById('wlReason').value = '';
+            
+            // 启用所有表单字段
+            enableFormFields();
+            
+            // 显示编辑模式按钮
+            document.getElementById('viewActions').style.display = 'none';
+            document.getElementById('editActions').style.display = 'flex';
+            
+            document.getElementById('whitelistModal').classList.add('active');
+        }
+
+        // 关闭白名单弹窗
+        function closeWhitelistModal() {
+            document.getElementById('whitelistModal').classList.remove('active');
+        }
+
+        // 查看白名单
+        function viewWhitelist(id) {
+            const item = whitelistData.find(d => d.id === id);
+            if (!item) return;
+
+            currentWhitelistId = id;
+            document.getElementById('whitelistModalTitle').textContent = '查看白名单';
+            document.getElementById('wlPlate').value = item.plate;
+            document.getElementById('wlType').value = item.type;
+            document.getElementById('wlOwner').value = item.owner;
+            document.getElementById('wlStartDate').value = item.startDate;
+            document.getElementById('wlEndDate').value = item.endDate;
+            document.getElementById('wlReason').value = item.reason;
+            
+            // 禁用所有表单字段
+            disableFormFields();
+            
+            // 显示查看模式按钮
+            document.getElementById('viewActions').style.display = 'flex';
+            document.getElementById('editActions').style.display = 'none';
+            
+            document.getElementById('whitelistModal').classList.add('active');
+        }
+
+        // 切换到编辑模式
+        function switchToEditMode() {
+            document.getElementById('whitelistModalTitle').textContent = '编辑白名单';
+            
+            // 启用所有表单字段
+            enableFormFields();
+            
+            // 显示编辑模式按钮
+            document.getElementById('viewActions').style.display = 'none';
+            document.getElementById('editActions').style.display = 'flex';
+        }
+
+        // 启用表单字段
+        function enableFormFields() {
+            document.getElementById('wlPlate').disabled = false;
+            document.getElementById('wlType').disabled = false;
+            document.getElementById('wlOwner').disabled = false;
+            document.getElementById('wlStartDate').disabled = false;
+            document.getElementById('wlEndDate').disabled = false;
+            document.getElementById('wlReason').disabled = false;
+        }
+
+        // 禁用表单字段
+        function disableFormFields() {
+            document.getElementById('wlPlate').disabled = true;
+            document.getElementById('wlType').disabled = true;
+            document.getElementById('wlOwner').disabled = true;
+            document.getElementById('wlStartDate').disabled = true;
+            document.getElementById('wlEndDate').disabled = true;
+            document.getElementById('wlReason').disabled = true;
+        }
+
+        // 保存白名单
+        function saveWhitelist() {
+            const plate = document.getElementById('wlPlate').value.trim();
+            const type = document.getElementById('wlType').value;
+            const owner = document.getElementById('wlOwner').value.trim();
+            const startDate = document.getElementById('wlStartDate').value;
+            const endDate = document.getElementById('wlEndDate').value;
+            const reason = document.getElementById('wlReason').value.trim();
+
+            // 验证必填字段
+            if (!plate) {
+                alert('请输入车牌号码！');
+                return;
+            }
+            if (!type) {
+                alert('请选择号牌种类！');
+                return;
+            }
+            if (!owner) {
+                alert('请输入车辆所属单位/个人！');
+                return;
+            }
+            if (!startDate || !endDate) {
+                alert('请选择有效期限！');
+                return;
+            }
+            if (!reason) {
+                alert('请输入备案原因！');
+                return;
+            }
+
+            // 判断状态
+            const now = new Date();
+            const end = new Date(endDate);
+            const status = end > now ? '有效' : '已过期';
+
+            const nowStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+            if (currentWhitelistId) {
+                // 编辑
+                const index = whitelistData.findIndex(d => d.id === currentWhitelistId);
+                if (index !== -1) {
+                    whitelistData[index] = {
+                        ...whitelistData[index],
+                        plate,
+                        type,
+                        owner,
+                        startDate,
+                        endDate,
+                        reason,
+                        status
+                    };
+                }
+            } else {
+                // 新增
+                const newId = Math.max(...whitelistData.map(d => d.id), 0) + 1;
+                whitelistData.push({
+                    id: newId,
+                    plate,
+                    type,
+                    owner,
+                    startDate,
+                    endDate,
+                    reason,
+                    status,
+                    createTime: nowStr
+                });
+            }
+
+            // 重新渲染表格
+            renderWhitelistTable();
+            closeWhitelistModal();
+            alert(currentWhitelistId ? '修改成功！' : '新增成功！');
+        }
+
+        // 删除白名单
+        function deleteWhitelist(id) {
+            if (!confirm('确定要删除这条白名单记录吗？')) return;
+            
+            whitelistData = whitelistData.filter(d => d.id !== id);
+            renderWhitelistTable();
+            alert('删除成功！');
+        }
+
+        // 查询白名单
+        function searchWhitelist() {
+            const plateFilter = document.getElementById('whitelistPlateFilter').value.trim().toLowerCase();
+            const typeFilter = document.getElementById('whitelistTypeFilter').value;
+            const statusFilter = document.getElementById('whitelistStatusFilter').value;
+
+            let filtered = whitelistData;
+
+            if (plateFilter) {
+                filtered = filtered.filter(item => item.plate.toLowerCase().includes(plateFilter));
+            }
+            if (typeFilter) {
+                filtered = filtered.filter(item => item.type === typeFilter);
+            }
+            if (statusFilter) {
+                filtered = filtered.filter(item => item.status === statusFilter);
+            }
+
+            renderWhitelistTable(filtered);
+        }
+
+        // 重置筛选条件
+        function resetWhitelistFilter() {
+            document.getElementById('whitelistPlateFilter').value = '';
+            document.getElementById('whitelistTypeFilter').value = '';
+            document.getElementById('whitelistStatusFilter').value = '';
+            renderWhitelistTable();
+        }
+
+        // 验证只能输入整数
+        function validateInteger(input) {
+            const value = input.value;
+            // 移除小数点和其他非数字字符
+            if (value.includes('.') || !/^\d*$/.test(value)) {
+                input.value = value.replace(/[^0-9]/g, '');
+            }
+        }
+
+        // 保存处置时限设置
+        function saveTimeLimitSettings() {
+            const autoFlowTime = document.getElementById('autoFlowTime').value.trim();
+            
+            // 验证必填字段
+            if (!autoFlowTime) {
+                alert('请输入自动流转时间！');
+                return;
+            }
+            
+            // 验证是否为正整数
+            if (!/^\d+$/.test(autoFlowTime) || parseInt(autoFlowTime) <= 0) {
+                alert('请输入大于0的整数！');
+                return;
+            }
+            
+            // 模拟保存（实际项目中应该调用API）
+            console.log('保存处置时限设置:', { autoFlowTime: parseInt(autoFlowTime) });
+            alert('保存成功！');
+        }
+
+        // 重置处置时限设置
+        function resetTimeLimitSettings() {
+            document.getElementById('autoFlowTime').value = '';
+        }
+    </script>
+</body>
+</html>
