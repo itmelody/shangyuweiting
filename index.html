@@ -990,7 +990,8 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .export-form-item {
@@ -1041,16 +1042,12 @@
 
         /* 导出操作按钮区域 */
         .export-actions {
-            margin-top: 24px;
-            padding: 20px 24px 0;
-            border-top: 1px solid #e8e8e8;
-        }
-
-        #viewActions,
-        #editActions {
             display: flex;
             justify-content: flex-end;
             gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            margin-top: auto;
         }
 
         /* 弹窗 */
@@ -1124,6 +1121,9 @@
 
         .modal-body {
             padding: 24px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         .detail-grid {
