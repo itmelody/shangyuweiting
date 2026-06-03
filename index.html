@@ -1427,6 +1427,9 @@
                             <div class="menu-item" onclick="selectMenu(this)">
                                 <span class="menu-icon">⏰</span>处置时限设置
                             </div>
+                            <div class="menu-item" onclick="selectMenu(this)">
+                                <span class="menu-icon">💬</span>短信模板设置
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1657,6 +1660,30 @@
                         <button class="btn-confirm" onclick="saveTimeLimitSettings()">保存</button>
                         <button class="btn-reset" onclick="resetTimeLimitSettings()">重置</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 短信模板设置页面 -->
+        <div class="main-content" id="smsTemplatePage" style="display: none;">
+            <!-- 短信模板设置表单 -->
+            <div class="filter-section" style="margin: 16px; padding: 32px; background: #fff; border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+                <h3 style="margin: 0 0 24px 0; font-size: 16px; font-weight: 600; color: #333;">短信模板配置</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <!-- 违停提醒模板 -->
+                    <div style="border: 1px solid #e8e8e8; border-radius: 4px; padding: 20px;">
+                        <div style="margin-bottom: 12px; font-weight: 500; color: #333;">违停提醒模板</div>
+                        <textarea id="violationReminderTemplate" rows="4" placeholder="请输入违停提醒短信模板内容" style="width: 100%; padding: 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; resize: vertical; line-height: 1.6;">【上虞城管】您的车辆{plate}于{time}在{location}存在不按规定停车的行为。该行为影响了道路交通秩序，请于五个工作日后持本告知单、驾驶证和行驶证等有效证件到“执法窗口”接受处理；或者驾驶人在“交管12123”绑定车辆信息后，通过支付宝浙里办小程序搜索“绍兴违停处理”自助处理。</textarea>
+                        <div style="margin-top: 8px; font-size: 12px; color: #999;">可用变量：{plate} 车牌号、{time} 违停时间、{location} 违停地点</div>
+                    </div>
+
+                </div>
+
+                <!-- 操作按钮 -->
+                <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
+                    <button class="btn-confirm" onclick="saveSmsTemplates()">保存</button>
+                    <button class="btn-reset" onclick="resetSmsTemplates()">重置</button>
                 </div>
             </div>
         </div>
@@ -2383,6 +2410,11 @@
                     <span class="breadcrumb-item">设置</span>
                     <span class="breadcrumb-item active">处置时限设置</span>
                 `;
+            } else if (menuText === '短信模板设置') {
+                breadcrumb.innerHTML = `
+                    <span class="breadcrumb-item">设置</span>
+                    <span class="breadcrumb-item active">短信模板设置</span>
+                `;
             } else {
                 const parentGroup = element.closest('.menu-group');
                 const groupTitle = parentGroup.querySelector('.menu-group-title span').textContent;
@@ -2402,7 +2434,8 @@
             if (menuText === '白名单设置') {
                 const whitelistPage = document.getElementById('whitelistPage');
                 const timeLimitPage = document.getElementById('timeLimitPage');
-                const caseListPage = document.querySelector('.main-wrapper > .main-content:not(#whitelistPage):not(#timeLimitPage)');
+                const smsTemplatePage = document.getElementById('smsTemplatePage');
+                const caseListPage = document.querySelector('.main-wrapper > .main-content:not(#whitelistPage):not(#timeLimitPage):not(#smsTemplatePage)');
                 
                 if (caseListPage) {
                     caseListPage.style.display = 'none';
@@ -2410,13 +2443,17 @@
                 if (timeLimitPage) {
                     timeLimitPage.style.display = 'none';
                 }
+                if (smsTemplatePage) {
+                    smsTemplatePage.style.display = 'none';
+                }
                 
                 whitelistPage.style.display = 'block';
                 renderWhitelistTable(); // 初始化白名单表格
             } else if (menuText === '处置时限设置') {
                 const whitelistPage = document.getElementById('whitelistPage');
                 const timeLimitPage = document.getElementById('timeLimitPage');
-                const caseListPage = document.querySelector('.main-wrapper > .main-content:not(#whitelistPage):not(#timeLimitPage)');
+                const smsTemplatePage = document.getElementById('smsTemplatePage');
+                const caseListPage = document.querySelector('.main-wrapper > .main-content:not(#whitelistPage):not(#timeLimitPage):not(#smsTemplatePage)');
                 
                 if (caseListPage) {
                     caseListPage.style.display = 'none';
@@ -2424,12 +2461,33 @@
                 if (whitelistPage) {
                     whitelistPage.style.display = 'none';
                 }
+                if (smsTemplatePage) {
+                    smsTemplatePage.style.display = 'none';
+                }
                 
                 timeLimitPage.style.display = 'block';
+            } else if (menuText === '短信模板设置') {
+                const whitelistPage = document.getElementById('whitelistPage');
+                const timeLimitPage = document.getElementById('timeLimitPage');
+                const smsTemplatePage = document.getElementById('smsTemplatePage');
+                const caseListPage = document.querySelector('.main-wrapper > .main-content:not(#whitelistPage):not(#timeLimitPage):not(#smsTemplatePage)');
+                
+                if (caseListPage) {
+                    caseListPage.style.display = 'none';
+                }
+                if (whitelistPage) {
+                    whitelistPage.style.display = 'none';
+                }
+                if (timeLimitPage) {
+                    timeLimitPage.style.display = 'none';
+                }
+                
+                smsTemplatePage.style.display = 'block';
             } else {
                 console.log('切换到案件列表页面');
                 const whitelistPage = document.getElementById('whitelistPage');
                 const timeLimitPage = document.getElementById('timeLimitPage');
+                const smsTemplatePage = document.getElementById('smsTemplatePage');
                 const allMainContents = document.querySelectorAll('.main-content');
                 // 显示第一个main-content（案件列表）
                 if (allMainContents.length > 0) {
@@ -2441,6 +2499,9 @@
                 }
                 if (timeLimitPage) {
                     timeLimitPage.style.display = 'none';
+                }
+                if (smsTemplatePage) {
+                    smsTemplatePage.style.display = 'none';
                 }
             }
         }
@@ -2721,6 +2782,45 @@
         // 重置处置时限设置
         function resetTimeLimitSettings() {
             document.getElementById('autoFlowTime').value = '';
+        }
+
+        // 保存短信模板
+        function saveSmsTemplates() {
+            const templates = {
+                violationReminder: document.getElementById('violationReminderTemplate').value.trim(),
+                auditPass: document.getElementById('auditPassTemplate').value.trim(),
+                auditReject: document.getElementById('auditRejectTemplate').value.trim(),
+                urge: document.getElementById('urgeTemplate').value.trim()
+            };
+
+            // 验证必填字段
+            if (!templates.violationReminder) {
+                alert('请输入违停提醒模板内容！');
+                return;
+            }
+            if (!templates.auditPass) {
+                alert('请输入审核通过模板内容！');
+                return;
+            }
+            if (!templates.auditReject) {
+                alert('请输入审核不通过模板内容！');
+                return;
+            }
+            if (!templates.urge) {
+                alert('请输入催办提醒模板内容！');
+                return;
+            }
+
+            // 模拟保存（实际项目中应该调用API）
+            console.log('保存短信模板:', templates);
+            alert('保存成功！');
+        }
+
+        // 重置短信模板
+        function resetSmsTemplates() {
+            // 恢复默认模板
+            document.getElementById('violationReminderTemplate').value = '【上虞交警】您的车辆{plate}于{time}在{location}存在不按规定停车的行为。该行为影响了道路交通秩序，请于五个工作日后持本告知单、驾驶证和行驶证等有效证件到“执法窗口”接受处理；或者驾驶人在“交管12123”绑定车辆信息后，通过支付宝浙里办小程序搜索“绍兴违停处理”自助处理。';
+            
         }
     </script>
 </body>
