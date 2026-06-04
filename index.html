@@ -865,7 +865,7 @@
             background: #f5f7fa;
             border-radius: 8px;
             border: 1px solid #e8e8e8;
-            max-height: 400px;
+            max-height: 600px;
             overflow-y: auto;
         }
 
@@ -1230,6 +1230,117 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+        }
+
+        .photo-preview img {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .photo-preview img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 图片查看器样式 */
+        .image-viewer-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-viewer-overlay.active {
+            display: flex;
+        }
+
+        .image-viewer-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-viewer-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        .image-viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+            z-index: 2001;
+        }
+
+        .image-viewer-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .image-viewer-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+            z-index: 2001;
+        }
+
+        .image-viewer-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .image-viewer-prev {
+            left: 20px;
+        }
+
+        .image-viewer-next {
+            right: 20px;
+        }
+
+        .image-viewer-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            z-index: 2001;
         }
 
         .photo-placeholder {
@@ -1725,7 +1836,7 @@
             <div class="modal-content modal-large">
                 <div class="modal-header">
                     <span>审核</span>
-                    <button class="btn-close" onclick="closeAuditModal()"></button>
+                    <button class="btn-close" onclick="closeAuditModal()">✕</button>
                 </div>
                 <div class="modal-body" style="overflow-x: hidden;">
                     <!-- 左右布局 -->
@@ -2046,7 +2157,7 @@
                 </div>
                 <div class="detail-item full-width">
                     <label>短信内容：</label>
-                    <textarea readonly></textarea>
+                    <textarea readonly rows="4" style="min-height: 110px; height: auto; overflow-y: auto;">${generateSmsContent(item)}</textarea>
                 </div>
                 <div class="detail-item full-width">
                     <label>描述：</label>
@@ -2055,8 +2166,10 @@
                 <div class="detail-item">
                     <label>违停照片：</label>
                     <div class="photo-preview">
-                        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop" alt="违停照片1" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
-                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop" alt="违停照片2" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
+                        <img src="/images/violation1.png" alt="违停照片1" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 0)" />
+                        <img src="/images/violation2.png" alt="违停照片2" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 1)" />
+                        <img src="/images/violation3.png" alt="违停照片3" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 2)" />
+                        <img src="/images/violation4.png" alt="违停照片4" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 3)" />
                     </div>
                 </div>
 
@@ -2162,17 +2275,19 @@
                 </div>
                 <div class="detail-item full-width">
                     <label>短信内容：</label>
-                    <textarea readonly></textarea>
+                    <textarea readonly rows="4" style="min-height: 110px; height: auto; overflow-y: auto;">${generateSmsContent(item)}</textarea>
                 </div>
                 <div class="detail-item full-width">
                     <label>描述：</label>
                     <input type="text" value="中国浙江省绍兴市上虞区${item.location}中段" readonly />
                 </div>
-                <div class="detail-item">
+                <div class="detail-item full-width">
                     <label>违停照片：</label>
-                    <div class="photo-preview">
-                        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop" alt="违停照片1" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
-                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop" alt="违停照片2" style="width: calc(50% - 6px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" />
+                    <div class="photo-preview" style="gap: 12px; width: 100%;">
+                        <img src="/images/violation1.png" alt="违停照片1" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 0)" />
+                        <img src="/images/violation2.png" alt="违停照片2" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 1)" />
+                        <img src="/images/violation3.png" alt="违停照片3" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 2)" />
+                        <img src="/images/violation4.png" alt="违停照片4" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 3)" />
                     </div>
                 </div>
 
@@ -2506,6 +2621,26 @@
             }
         }
 
+        // 根据模板生成短信内容
+        function generateSmsContent(item) {
+            // 获取短信模板（如果未设置则使用默认模板）
+            const templateElement = document.getElementById('violationReminderTemplate');
+            let template = templateElement ? templateElement.value : '';
+            
+            // 如果没有设置模板，使用默认模板
+            if (!template) {
+                template = '【上虞交警】您的车辆{plate}于{time}在{location}存在不按规定停车的行为。该行为影响了道路交通秩序，请于五个工作日后持本告知单、驾驶证和行驶证等有效证件到“执法窗口”接受处理；或者驾驶人在“交管12123”绑定车辆信息后，通过支付宝浙里办小程序搜索“绍兴违停处理”自助处理。';
+            }
+            
+            // 替换模板变量
+            let smsContent = template
+                .replace(/{plate}/g, item.plate || '')
+                .replace(/{time}/g, item.time || '')
+                .replace(/{location}/g, item.location || '');
+            
+            return smsContent;
+        }
+
         // 初始化
         renderTable();
 
@@ -2822,6 +2957,85 @@
             document.getElementById('violationReminderTemplate').value = '【上虞交警】您的车辆{plate}于{time}在{location}存在不按规定停车的行为。该行为影响了道路交通秩序，请于五个工作日后持本告知单、驾驶证和行驶证等有效证件到“执法窗口”接受处理；或者驾驶人在“交管12123”绑定车辆信息后，通过支付宝浙里办小程序搜索“绍兴违停处理”自助处理。';
             
         }
+
+        // 图片查看器相关函数
+        let currentImages = [];
+        let currentIndex = 0;
+
+        // 打开图片查看器
+        function openImageViewer(images, index) {
+            currentImages = images;
+            currentIndex = index;
+            showCurrentImage();
+            document.getElementById('imageViewer').classList.add('active');
+            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+        }
+
+        // 关闭图片查看器
+        function closeImageViewer() {
+            document.getElementById('imageViewer').classList.remove('active');
+            document.body.style.overflow = ''; // 恢复背景滚动
+        }
+
+        // 显示当前图片
+        function showCurrentImage() {
+            const viewerImage = document.getElementById('viewerImage');
+            const imageCounter = document.getElementById('imageCounter');
+            
+            viewerImage.src = currentImages[currentIndex];
+            imageCounter.textContent = `${currentIndex + 1} / ${currentImages.length}`;
+        }
+
+        // 上一张图片
+        function prevImage() {
+            if (currentImages.length === 0) return;
+            currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
+            showCurrentImage();
+        }
+
+        // 下一张图片
+        function nextImage() {
+            if (currentImages.length === 0) return;
+            currentIndex = (currentIndex + 1) % currentImages.length;
+            showCurrentImage();
+        }
+
+        // 点击遮罩关闭图片查看器
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageViewer = document.getElementById('imageViewer');
+            if (imageViewer) {
+                imageViewer.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeImageViewer();
+                    }
+                });
+            }
+        });
+
+        // 键盘支持
+        document.addEventListener('keydown', function(e) {
+            const imageViewer = document.getElementById('imageViewer');
+            if (imageViewer.classList.contains('active')) {
+                if (e.key === 'Escape') {
+                    closeImageViewer();
+                } else if (e.key === 'ArrowLeft') {
+                    prevImage();
+                } else if (e.key === 'ArrowRight') {
+                    nextImage();
+                }
+            }
+        });
     </script>
+
+    <!-- 图片查看器 -->
+    <div class="image-viewer-overlay" id="imageViewer">
+        <button class="image-viewer-close" onclick="closeImageViewer()">✕</button>
+        <button class="image-viewer-nav image-viewer-prev" onclick="prevImage()">‹</button>
+        <div class="image-viewer-content">
+            <img id="viewerImage" src="" alt="查看图片" />
+        </div>
+        <button class="image-viewer-nav image-viewer-next" onclick="nextImage()">›</button>
+        <div class="image-viewer-counter" id="imageCounter">1 / 4</div>
+    </div>
 </body>
 </html>
