@@ -1767,7 +1767,7 @@
             <!-- 设置表单 -->
             <div class="filter-section" style="margin: 16px; padding: 32px; background: #fff; border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <label style="font-size: 14px; color: #333; white-space: nowrap;">自动流转时间：</label>
+                    <label style="font-size: 14px; color: #333; white-space: nowrap;">自动流转时间间隔：</label>
                     <input type="number" id="autoFlowTime" value="4" placeholder="请输入整数" min="1" step="1" style="width: 200px; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; background: #f5f5f5;" oninput="validateInteger(this)" />
                     <span style="font-size: 14px; color: #666; white-space: nowrap;">小时</span>
                     <div style="display: flex; gap: 12px; margin-left: auto;">
@@ -2169,10 +2169,10 @@
                 <div class="detail-item">
                     <label>违停照片：</label>
                     <div class="photo-preview">
-                        <img src="/images/violation1.png" alt="违停照片1" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 0)" />
-                        <img src="/images/violation2.png" alt="违停照片2" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 1)" />
-                        <img src="/images/violation3.png" alt="违停照片3" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 2)" />
-                        <img src="/images/violation4.png" alt="违停照片4" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 3)" />
+                        <img src="images/violation1.png" alt="违停照片1" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 0)" />
+                        <img src="images/violation2.png" alt="违停照片2" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 1)" />
+                        <img src="images/violation3.png" alt="违停照片3" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 2)" />
+                        <img src="images/violation4.png" alt="违停照片4" style="width: calc(25% - 9px); height: auto; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 3)" />
                     </div>
                 </div>
 
@@ -2287,10 +2287,10 @@
                 <div class="detail-item full-width">
                     <label>违停照片：</label>
                     <div class="photo-preview" style="gap: 12px; width: 100%;">
-                        <img src="/images/violation1.png" alt="违停照片1" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 0)" />
-                        <img src="/images/violation2.png" alt="违停照片2" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 1)" />
-                        <img src="/images/violation3.png" alt="违停照片3" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 2)" />
-                        <img src="/images/violation4.png" alt="违停照片4" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['/images/violation1.png', '/images/violation2.png', '/images/violation3.png', '/images/violation4.png'], 3)" />
+                        <img src="images/violation1.png" alt="违停照片1" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 0)" />
+                        <img src="images/violation2.png" alt="违停照片2" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 1)" />
+                        <img src="images/violation3.png" alt="违停照片3" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 2)" />
+                        <img src="images/violation4.png" alt="违停照片4" style="width: 240px; height: 180px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9;" onclick="openImageViewer(['images/violation1.png', 'images/violation2.png', 'images/violation3.png', 'images/violation4.png'], 3)" />
                     </div>
                 </div>
 
